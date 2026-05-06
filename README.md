@@ -154,4 +154,74 @@ CLUMP引用 改 _clump_name 填目标节点名称
 
 2026年5月
 
+
+
+此项目网址:https://github.com/skyIshier/Sky-.bin-reader-python-zh        "objectByteSize": 1,     // 数据大小（字节）
+        "arrayIndex": 0          // 数组索引（0=非数组）
+    }
+}
+```
+
+BSTNodes（实际游戏数据）
+
+```json
+"BstNode_2093678655": {
+    "TransformObject（变换物体）": {
+        "autoStart（自动开始）": {
+            "_raw_uint8": 0,        // 原始字节值（勿修改）
+            "_value": false         // 可读值（修改这里）
+        },
+        "time（持续时间）": {
+            "_raw_uint32": 1072064102,
+            "_value": "1.7999999523162842"
+        },
+        "dragSound（拖拽音效）": ""   // 字符串直接修改
+    }
+}
+```
+
+---
+
+修改指南
+
+数据类型 修改方式 注意事项
+布尔/数值 改 _value 字段 不要动 _raw_* 字段
+字符串 直接改引号内文本 -
+CLUMP引用 改 _clump_name 填目标节点名称
+四维向量 改 _value 数组 格式 ["x","y","z","w"]
+
+---
+
+翻译覆盖
+
+类型 已翻译 覆盖率
+类名 863 100%
+属性名 5059 100%
+支持地图 104 全部主流地图
+
+翻译表独立存放在 zh字典.py，可随时补充更新。
+
+---
+
+环境要求
+
+· Python 3.6+
+· 无需任何第三方库（仅使用标准库）
+
+---
+
+致谢
+
+· 原作者：CodeAnalyzer53、TheSR、Miau0x1
+
+· 2改作者:sky-shier-十二
+
+· Python 移植及中文翻译：本项目
+
+---
+
+更新日期
+
+2026年5月
+
 此项目网址:https://github.com/skyIshier/Sky-.bin-reader-python-zh
