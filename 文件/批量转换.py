@@ -880,7 +880,8 @@ def clear_screen():
 
 def print_header():
     print("=" * 60)
-    print("   Sky .bin 批量转换工具 - 精确版 + 中文翻译")
+    print("   Sky .bin 批量转换工具 作者:十二 原项目作者:Miau ")
+    print("此项目网址:https://github.com/skyIshier/Sky-.bin-reader-python-zh")
     print("=" * 60)
 
 

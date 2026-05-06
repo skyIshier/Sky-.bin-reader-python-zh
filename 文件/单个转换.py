@@ -828,7 +828,8 @@ def clear_screen():
 
 def print_header():
     print("=" * 55)
-    print("   Sky .bin 读取器/写入器 - 精确版 + 完整中文翻译")
+    print("   Sky .bin 读取器/写入器 作者:十二 原项目作者:Miau ")
+    print("此项目网址:https://github.com/skyIshier/Sky-.bin-reader-python-zh")
     print("=" * 55)
 
 
