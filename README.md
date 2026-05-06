@@ -143,7 +143,9 @@ CLUMP引用 改 _clump_name 填目标节点名称
 致谢
 
 · 原作者：CodeAnalyzer53、TheSR、Miau0x1
+
 · 2改作者:sky-shier-十二
+
 · Python 移植及中文翻译：本项目
 
 ---
