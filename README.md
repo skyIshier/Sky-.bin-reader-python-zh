@@ -153,3 +153,5 @@ CLUMP引用 改 _clump_name 填目标节点名称
 更新日期
 
 2026年5月
+
+此项目网址:https://github.com/skyIshier/Sky-.bin-reader-python-zh
