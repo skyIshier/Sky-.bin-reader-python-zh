@@ -1,4 +1,4 @@
-# sky_translate.py - Sky 完整中文翻译表（104个地图全覆盖）作者:十二
+# sky_translate.py - Sky 完整中文翻译表（104个地图全覆盖）
 
 CLASS_NAMES_ZH = {
     "AbandonQuestPrefabOnEnable": "启用时放弃任务预设",
@@ -5080,4 +5080,8 @@ PROPERTY_NAMES_ZH = {
     "Cooldown": "冷却时间",
     "blockMessageStone": "屏蔽消息石",
     "forceTakeoff": "强制起飞",
+}
+
+格式 = {
+    "英文": "中文",
 }
