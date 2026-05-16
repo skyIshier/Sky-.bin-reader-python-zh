@@ -1,0 +1,243 @@
+========================================
+  Sky .bin 文件完整介绍
+========================================
+
+【什么是 .bin 文件】
+.bin 是《光·遇》游戏中的关卡配置文件，全称为 Binary Object Level File
+（二进制物体关卡文件）。它存储了一个地图中所有物体的属性、位置、行为和
+相互之间的引用关系。
+
+简单来说，每个 .bin 文件就是一张地图的"蓝图"——它告诉游戏引擎：
+  - 这个地图里有什么东西
+  - 这些东西在哪里
+  - 它们长什么样
+  - 它们之间怎么互动
+  - 玩家能做什么、不能做什么
+
+【.bin 文件在哪】
+在 APK 安装包中:
+  /assets/Data/Levels/
+    ├── Day/              ← 云野
+    │   └── Objects.level.bin
+    ├── Night/            ← 禁阁
+    │   └── Objects.level.bin
+    ├── Rain/             ← 雨林
+    │   └── Objects.level.bin
+    ├── Dawn/             ← 晨岛
+    │   └── Objects.level.bin
+    ├── Sunset/           ← 暮土
+    │   └── Objects.level.bin
+    ├── Storm/            ← 暴风眼
+    │   └── Objects.level.bin
+    └── ...               ← 其他地图
+
+每个地图文件夹中只有一个 Objects.level.bin 文件。
+
+【如何获取 .bin 文件】
+方法一：从 APK 中提取
+  1. 将 .apk 文件后缀名改为 .zip
+  2. 用解压软件打开
+  3. 进入 /assets/Data/Levels/ 目录
+  4. 找到对应地图文件夹，复制 Objects.level.bin
+
+方法二：从已安装的游戏目录提取
+  Android 设备:
+    /data/data/com.tgc.sky/ 或 /sdcard/Android/data/com.tgc.sky/
+  （需要 root 或使用文件管理器）
+
+方法三：使用项目提供的 Python 脚本
+  python 单个转换.py file.bin    ← 单文件转换
+  python 批量转换.py Levels/     ← 批量转换整个目录
+
+【.bin 文件的内部结构】
+.bin 文件是一种名为 TGCL 的二进制格式，由以下部分组成:
+
+1. 文件头 (前 44 字节)
+   ┌─────────────────────────────────────┐
+   │ 字段名            │ 大小   │ 说明    │
+   ├─────────────────────────────────────┤
+   │ magic             │ 4 字节 │ 固定为 "TGCL" │
+   │ version           │ 4 字节 │ 文件版本号 │
+   │ classLength       │ 4 字节 │ 类定义的数量 │
+   │ propertyCount     │ 4 字节 │ 属性定义总数 │
+   │ BSTNodeCount      │ 4 字节 │ BST 节点数量 │
+   │ objectPtrCount    │ 4 字节 │ 对象指针数量 │
+   │ classOffset       │ 4 字节 │ 类定义区的起始偏移 │
+   │ propertyOffset    │ 4 字节 │ 属性定义区的起始偏移 │
+   │ PropertyNameOffset│ 4 字节 │ 字符串池的起始偏移 │
+   │ BSTNodeOffset     │ 4 字节 │ BST 节点区的起始偏移 │
+   │ FileSize          │ 4 字节 │ 文件总大小 │
+   └─────────────────────────────────────┘
+
+2. 类定义区 (Class Definitions)
+   定义了地图中所有物体类型的元数据。
+   每个类定义 12 字节，包含:
+     - 类名的字符串池偏移
+     - 该类的属性在属性区的起始索引
+     - 该类的属性数量
+
+3. 属性定义区 (Property Definitions)
+   定义每个类的所有属性。
+   每个属性定义 16 字节，包含:
+     - propertyType: 属性类型 (0=数值, 1=字符串, 2=引用, 3=数组)
+     - propertyNameOffset: 属性名的字符串池偏移
+     - objectByteSize: 数据大小 (字节)
+     - arrayIndex: 数组元素类型索引
+
+4. 字符串池 (String Pool)
+   存储所有类名和属性名。
+   每个字符串以 \x00 (空字节) 结尾。
+
+5. BST 节点数据区 (BST Nodes)
+   存储地图中所有物体的实际数据。
+   这是文件的核心部分，占文件体积的绝大部分。
+   每个 BST 节点:
+     - 4 字节: 类索引 (指向类定义区中的某个类)
+     - 字符串: 节点名称 (以 \x00 结尾)
+     - N 字节: 该类的所有属性值
+
+   属性值根据类型有不同格式:
+     propertyType 0 (数值):
+       1 字节 (uint8): 布尔值或小整数
+       2 字节 (uint16): 无符号短整数
+       4 字节 (uint32): 整数或浮点数
+       8 字节 (double): 双精度浮点数
+       10 字节 (long double): 长双精度浮点数
+       16 字节 (vector4): 四维向量 (4 个 float)
+       64 字节 (transform): 4×4 变换矩阵 (16 个 float)
+
+     propertyType 1 (字符串):
+       以 \x00 结尾的 UTF-8 字符串
+
+     propertyType 2 (CLUMP 引用):
+       4 字节 uint32，指向另一个 BST 节点的索引
+       0xFFFFFFFF 表示空引用 (NaN)
+
+     propertyType 3 (数组):
+       4 字节: 数组长度
+       然后根据 arrayIndex:
+         - 如果 arrayIndex == 0xFFFFFFFF: N 个 CLUMP 引用 (每个 4 字节)
+         - 否则: N 个嵌套类实例
+
+【常见的类名及其作用】
+  Boundary       - 风墙（阻挡玩家飞行的空气墙）
+  Wind           - 风压（水试炼等地图的强风）
+  Water          - 水面
+  KillBox        - 死亡区域
+  MeditationArea - 打坐点/冥想区域
+  Npc            - NPC 角色
+  Npc_HandHold   - NPC 牵手
+  Npc_Chat       - NPC 对话
+  Timeline       - 时间轴/过场动画
+  Enable         - 启用开关（控制其他节点的激活状态）
+  Clump          - 节点集合（引用容器）
+  Marker         - 标记点
+  LevelMesh      - 关卡网格/模型
+  Checkpoint     - 检查点/存档点
+  Portal         - 传送门
+  SpawnMotes     - 生成微粒/光点
+  SoundEmitter   - 音效发射器
+  PointLight     - 点光源
+  Flame          - 火焰
+  Pickup         - 拾取物
+
+【属性类型详解】
+  propertyType 0 - 数值
+    存储整数、浮点数、布尔值、向量、矩阵等。
+    JSON 中表现为:
+    {
+      "_raw_uint32": 1065353216,    ← 原始字节值（勿修改）
+      "_value": "1.0"               ← 可读值（修改这个）
+    }
+
+  propertyType 1 - 字符串
+    直接存储文本。JSON 中直接显示字符串值。
+
+  propertyType 2 - CLUMP 引用
+    存储指向另一个 BST 节点的索引。
+    JSON 中表现为:
+    {
+      "_raw_uint32": 598,           ← 引用节点的索引
+      "_is_clump": true,
+      "_clump_name": "BstNode_123456789"  ← 引用节点的名称
+    }
+
+  propertyType 3 - 数组
+    存储可变长度的数据。
+    如果 arrayIndex == 0xFFFFFFFF: CLUMP 引用数组
+    否则: 嵌套类实例数组
+
+【JSON 结构说明】
+转换后的 JSON 包含两个主要部分:
+
+1. classes (类定义元数据)
+   {
+     "Boundary": {              ← 类名
+       "autoStart": {           ← 属性名
+         "propertyType": 0,     ← 属性类型
+         "objectByteSize": 1,   ← 数据大小
+         "arrayIndex": 0        ← 数组索引
+       }
+     }
+   }
+
+2. BSTNodes (实际游戏数据)
+   {
+     "BstNode_123456789": {     ← 节点名（唯一标识）
+       "Boundary": {            ← 这个节点是 Boundary 类型
+         "transform": {         ← 变换矩阵（位置/旋转/缩放）
+           "_raw_floats": [...],
+           "_value": [[...],[...],[...],[x,y,z,w]]
+         },
+         "enabled": {           ← 是否启用
+           "_raw_uint8": 1,
+           "_value": true
+         }
+       }
+     }
+   }
+
+【修改注意事项】
+1. 修改数值属性时，只改 "_value" 字段，不要动 "_raw_*" 字段
+2. 字符串属性直接修改引号内的文本
+3. CLUMP 引用修改 "_clump_name" 字段（节点名称）
+4. 修改后需用 json→bin 转回，再用文件对比验证正确性
+5. 新增节点时，需要确保:
+   - 类定义在 classes 中存在
+   - 所有 CLUMP 引用指向有效节点
+   - 节点名不重复
+   - 字符串池中包含所有新名称
+
+【.bin 文件的版本】
+.bin 文件有版本号，位于文件头第 5-8 字节。
+不同版本的 .bin 文件结构可能略有不同，类定义也可能有变化。
+通常同一 APK 版本中的所有 .bin 文件版本号相同。
+
+跨版本移植节点时可能失败，因为:
+  - 类定义缺失
+  - 属性定义不同
+  - 引用的节点不存在
+
+建议在同版本的地图之间进行节点的复制粘贴。
+
+【文件大小范围】
+不同地图的 .bin 文件大小差异很大:
+  - 小地图: 约 100-500 KB
+  - 中型地图: 约 1-5 MB
+  - 大型地图: 约 10-30 MB
+
+文件越大，包含的物体和逻辑越多。
+
+【相关工具】
+  单个转换.py     - 单文件 bin ↔ json 交互式转换
+  批量转换.py     - 批量处理整个 Levels 目录
+  文件对比工具     - 逐字节对比两个 bin 文件
+  JSON 搜索工具    - 在 JSON 中搜索关键词
+  类列表工具       - 查看 bin 文件中所有类名
+  节点查看器       - 查看指定 BST 节点的内容
+
+========================================
+  更新日期: 2026年5月
+  作者: 十二
+  项目地址: https://github.com/skyIshier/Sky-.bin-reader-python-zh
+========================================
